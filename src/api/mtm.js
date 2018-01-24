@@ -92,7 +92,6 @@ export default class MusicAPI {
   /**
    * Get related media of a song given an id.
    */
-  /*
   static getSongMedia = (id) => {
     let requestUrl = BASE_URL + "/songs/" + id + "/media?n=4";
 
@@ -112,5 +111,4 @@ export default class MusicAPI {
         MusicAPI.handleError(error);
       });  
   };
-  */
 }
