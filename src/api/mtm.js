@@ -52,8 +52,20 @@ export default class MusicAPI {
    */
   static getSongInfo = (id) => {
     // TODO: Implement!
-    return null;
-  }
+
+    let requestUrl = BASE_URL + "/songs/" + id;
+
+    return axios.get(requestUrl)
+      .then(function (res) {
+        let result = res.data.data;
+        let song = new Song(id, result.name, result.artist, result.albumName, result.releaseDate, result.duration, result.url, result.image);
+
+        return song;
+      })
+      .catch(function (error) {
+        MusicAPI.handleError(error);
+      });    
+  };
 
   /**
    * Get historical ranks of a song given an id
@@ -75,13 +87,30 @@ export default class MusicAPI {
       .catch(function (error) {
         MusicAPI.handleError(error);
       });
-  }
+  };
 
   /**
    * Get related media of a song given an id.
    */
+  /*
   static getSongMedia = (id) => {
-    // TODO: Implement!
-    return null;
-  }
+    let requestUrl = BASE_URL + "/songs/" + id + "/media?n=4";
+
+    return axios.get(requestUrl)
+      .then(function (response) {
+        let result = response.data.data;
+
+        let media = [];
+        
+        result.forEach((mediaObj) => {
+          media.push(new MediaItem(mediaObj.url, mediaObj.caption, mediaObj.thumbnail));
+        });
+
+        return media;
+      })
+      .catch(function (error) {
+        MusicAPI.handleError(error);
+      });  
+  };
+  */
 }
