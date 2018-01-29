@@ -117,19 +117,43 @@ export default class MusicAPI {
    * Get related media of a song given an id.
    */
   static getSongMedia = (id) => {
-    let requestUrl = BASE_URL + "/songs/" + id + "/media?n=4";
+    let BILLBOARD_URL = "http://localhost:9006/billboard/music/song/" + id;
+    let MEDIA = [];
 
-    return axios.get(requestUrl)
-      .then(function (response) {
-        let result = response.data.data;
+    return axios.get(BILLBOARD_URL)
+      .then(function (res) {
+        let song_result = res.data;
+        let song_name = song_result['song']['song_name'];
+        let song_artist = song_result['song']['display_artist'];
 
-        let media = [];
+        let VIDEO_URL = "http://localhost:9008/imvdb/api/v1/search/videos?q=" + song_artist + ' ' + song_name;
+
+        return axios.get(VIDEO_URL)
+        .then(function (res) {
+          let media_result = res.data;
         
-        result.forEach((mediaObj) => {
-          media.push(new MediaItem(mediaObj.url, mediaObj.caption, mediaObj.thumbnail));
-        });
+          media_result.results.forEach((mediaObj) => {
+            MEDIA.push(new MediaItem(mediaObj.url, mediaObj.song_title, mediaObj.image.l));
+          });
 
-        return media;
+          let GOOGLE_URL = "http://localhost:9009/googleapis/customsearch/v1?&key=AIzaZyAHVa03D6aEAPH_AGR6-PJGKILKxJU-VyY&cx=001770674074172668715:am0dsqea_hey&searchType=image&q=" + media_result.results[0].song_title;
+          
+          return axios.get(GOOGLE_URL)
+          .then(function (res) {
+            let image_result = res.data;
+    
+            image_result.items.forEach((item) => {
+              MEDIA.push(new MediaItem(item.link, item.title, item.image.thumbnailLink));
+            });
+            return MEDIA;
+          })
+          .catch(function (error) {
+            MusicAPI.handleError(error);
+          });
+        })
+        .catch(function (error) {
+          MusicAPI.handleError(error);
+        });
       })
       .catch(function (error) {
         MusicAPI.handleError(error);
