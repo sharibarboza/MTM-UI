@@ -89,52 +89,23 @@ export default class MusicAPI {
       .catch(function (error) {
         MusicAPI.handleError(error);
       });   
-    
-  };
-
-  static getTrack = (spotify_id) => {
-    let SPOTIFY_URL = "http://localhost:9007/spotify/v1/tracks/" + spotify_id;
-
-    return axios.get(SPOTIFY_URL)
-      .then(function (res) {
-        let result = res.data;
-
-        return result;
-      })
-      .catch(function (error) {
-        MusicAPI.handleError(error);
-      });  
-  };
-
-  static getAlbum = (spotify_id) => {
-    let SPOTIFY_URL = "http://localhost:9007/spotify/v1/albums/" + spotify_id;
-
-    return axios.get(SPOTIFY_URL)
-      .then(function (res) {
-        let result = res.data;
-
-        return result;
-      })
-      .catch(function (error) {
-        MusicAPI.handleError(error);
-      });  
   };
 
   /**
    * Get historical ranks of a song given an id
    */
   static getSongRankings = (id) => {
-    let requestUrl = BASE_URL + "/songs/" + id + "/ranks";
+    let BILLBOARD_URL = "http://localhost:9006/billboard/music/song/" + id;
+    let RANK_OBJ = null;
 
-    return axios.get(requestUrl)
+    return axios.get(BILLBOARD_URL)
       .then(function (res) {
-        let result = res.data.data;
+        let song_result = res.data;
         let rankings = [];
 
-        result.forEach((ranking) => {
-          rankings.push(new SongRank(ranking.endDate, ranking.rank));
+        song_result.rankings.forEach((ranking) => {
+          rankings.push(new SongRank(ranking.date, ranking.rank));
         });
-
         return rankings;
       })
       .catch(function (error) {
