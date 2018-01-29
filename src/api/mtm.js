@@ -29,7 +29,6 @@ export default class MusicAPI {
   static getChart = (date) => {
 
     let BILLBOARD_URL = "http://localhost:9006/billboard/charts/" + date + "?filter=song";
-    let requestUrl = BASE_URL + "/charts/" + date;
 
     return axios.get(BILLBOARD_URL)
       .then(function (res) {
@@ -54,18 +53,71 @@ export default class MusicAPI {
   static getSongInfo = (id) => {
     // TODO: Implement!
 
-    let requestUrl = BASE_URL + "/songs/" + id;
+    let BILLBOARD_URL = "http://localhost:9006/billboard/music/song/" + id;
+    let SONG = null;
+    let TRACK = null;
+    let SONG_OBJ = null;
 
-    return axios.get(requestUrl)
+    return axios.get(BILLBOARD_URL)
       .then(function (res) {
-        let result = res.data.data;
-        let song = new Song(id, result.name, result.artist, result.albumName, result.releaseDate, result.duration, result.url, result.image);
+        SONG = res.data;
+        let spotify_id = SONG['song']['spotify_id'];
 
-        return song;
+        let SPOTIFY_URL = "http://localhost:9007/spotify/v1/tracks/" + spotify_id;
+
+        return axios.get(SPOTIFY_URL)
+          .then(function (res) {
+            TRACK = res.data;
+            let album_id = TRACK['album']['id'];
+
+            let SPOTIFY_URL = "http://localhost:9007/spotify/v1/albums/" + album_id;
+
+            return axios.get(SPOTIFY_URL)
+              .then(function (res) {
+                let album_result = res.data;
+                SONG_OBJ = new Song(id, SONG.song['song_name'], SONG.song['display_artist'], album_result['name'], album_result['release_date'], TRACK['duration_ms'], TRACK['external_urls']['spotify'], TRACK['album']['images'][0]['url']);
+                return SONG_OBJ;
+              })
+              .catch(function (error) {
+                MusicAPI.handleError(error);
+              });  
+          })
+          .catch(function (error) {
+            MusicAPI.handleError(error);
+          }); 
       })
       .catch(function (error) {
         MusicAPI.handleError(error);
-      });    
+      });   
+    
+  };
+
+  static getTrack = (spotify_id) => {
+    let SPOTIFY_URL = "http://localhost:9007/spotify/v1/tracks/" + spotify_id;
+
+    return axios.get(SPOTIFY_URL)
+      .then(function (res) {
+        let result = res.data;
+
+        return result;
+      })
+      .catch(function (error) {
+        MusicAPI.handleError(error);
+      });  
+  };
+
+  static getAlbum = (spotify_id) => {
+    let SPOTIFY_URL = "http://localhost:9007/spotify/v1/albums/" + spotify_id;
+
+    return axios.get(SPOTIFY_URL)
+      .then(function (res) {
+        let result = res.data;
+
+        return result;
+      })
+      .catch(function (error) {
+        MusicAPI.handleError(error);
+      });  
   };
 
   /**
